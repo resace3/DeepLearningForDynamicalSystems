@@ -1,0 +1,142 @@
+import numpy as np
+import tensorflow as tf
+import json
+import os
+import sys
+import shutil
+import matplotlib.pyplot as plt
+
+outputFile = open('el.txt','w')
+
+def Euler(xa, xb, ya, n):
+    eachPoint=[]
+    h = (xb - xa) / (n)
+    x = xa
+    y = ya
+    for i in range(n):
+        y += h * f(x)
+        x += h
+        eachPoint.append(y)
+    return eachPoint
+
+def f(x):
+    dxdt=tf.log(x)
+    return dxdt
+
+
+def train_network(binput,boutput,input):
+
+
+    binput = np.asarray(binput)
+    boutput = np.asarray(boutput)
+
+    x = binput
+    y = boutput
+
+   
+    x = x.reshape(x.shape[0],1)
+    y = y.reshape(y.shape[0],1)
+    
+
+    bone = tf.Variable(np.zeros((1,10)),dtype=tf.float32)  ##
+    btwo = tf.Variable(np.zeros((1,1)),dtype=tf.float32)  ##
+    wone = tf.Variable(np.random.normal(size = (1,10)),dtype=tf.float32)  ##
+    wtwo = tf.Variable(np.random.normal(size = (10,1)),dtype=tf.float32) ##
+
+    tf_x = tf.placeholder(tf.float32,(None, 1))     # input x
+    tf_y = tf.placeholder(tf.float32,(None, 1))      # input y# neural network layers
+  
+    l1 = tf.nn.relu(tf.matmul(tf_x,wone) + bone)       # hidden layer
+   
+
+  
+    output =  tf.matmul(l1,wtwo) + btwo
+   
+
+    loss = tf.losses.mean_squared_error(tf_y, output)   # compute cost
+    optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.0001)
+    train_op = optimizer.minimize(loss) 
+
+    sess = tf.Session()                                 # control training and others
+    sess.run(tf.global_variables_initializer())         # initialize var in graph
+
+
+
+    for step in range(1000):
+   
+        _, l, pred = sess.run([train_op, loss, output], {tf_x: x, tf_y: y})
+        
+    practice=np.asarray(np.transpose([4.,5.,6.,7.,8.,9.]))
+    practice.shape=[6,1]
+    next=sess.run([output],{tf_x:practice})
+    temp=0;
+    for i in range(7):
+        temp=sess.run([output],{tf_x:next[0]})
+        
+        
+        next=temp
+        
+        
+    
+  
+  
+
+
+def main():
+    xa=tf.constant([1.])
+    xb=tf.constant([10.])
+    n =tf.constant([10.])
+    x= [4.,5,6,7,8,9]
+    x_tf=tf.placeholder(dtype=tf.float32,shape=len(x))
+    y=Euler(1.0,10.0,x_tf,10)
+    a = np.zeros(shape=(len(x),10))
+
+    sess=tf.Session()
+    y=sess.run([y],{x_tf:x})
+    sess.close()
+
+    for i in range(0,10,1):
+        
+        wline = str(y[0][i]) + "\n"
+        outputFile.write(wline)
+
+    outputFile.close()
+
+    inputBigYVector=[] 
+    outputBigYVector=[]
+    
+    for j in range(len(y[0])-1):
+        inputBigYVector.append(list(y[0][j]))
+    
+    joinedInputBigYVector = sum(inputBigYVector, [])#creates the big input 
+    
+    for j in range(1,len(y[0])):
+        outputBigYVector.append(list(y[0][j]))
+    
+    joinedOutputBigYVector=sum(outputBigYVector, [])#creates the big output
+
+    np.asarray(joinedInputBigYVector)
+    np.asarray(joinedOutputBigYVector)
+
+
+    train_network(joinedInputBigYVector,joinedOutputBigYVector,y);
+    
+    #plt.scatter(np.zeros(6),y[0][0])
+    
+    
+    
+    
+    fig1=plt.figure()
+    plt.xlim([-1,5])
+    plt.ylim([2,20])
+    plt.scatter(np.zeros(6),y[0][0])
+    plt.scatter(np.ones(6),y[0][1])
+    plt.scatter(np.full(6,2),y[0][2])
+    plt.scatter(np.full(6,3),y[0][3])
+    plt.scatter(np.full(6,4),y[0][4])
+    plt.scatter(np.full(6,5),y[0][5])
+    fig1.savefig('sixthplot.png',bbox_inches='tight')
+    
+    
+if __name__ == '__main__':
+    main()
